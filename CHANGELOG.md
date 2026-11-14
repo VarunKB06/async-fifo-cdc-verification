@@ -1,9 +1,13 @@
 # Change log
 
+## Documentation update (final README)
+- README: removed script-rendered images, added GTKWave screenshots, layout tree, verification architecture,
+  test summary, future work; scripts shown with `bash`.
+
 ## Results and documentation update
 - CI green: 38/38 tests pass for seeds 1, 2, 3 (Icarus Verilog); results, per-seed logs, coverage and assertion
   summaries committed under `reports/`; stage-1 VCD committed under `waveforms/`.
-- Added `scripts/vcd_to_png.py` and three waveform images rendered from the CI VCD (not GTKWave screenshots).
+- Added three GTKWave screenshots of the CI VCD under `waveforms/` and referenced them in the README.
 - README and `docs/verification_plan.md` updated with real results, cross-bin analysis and a status table.
 - `.gitignore`: committed `waveforms/*.vcd` allowed.
 
@@ -31,7 +35,9 @@
   `+nowave` removed. No change to checks, scoreboard, assertions or coverage.
 - `scripts/run.sh`: `WAVES=1` now passes `+vcd` (default off).
 - Added `.gitattributes` (LF endings for `.sh/.sv/.yml/.py`); the old testbench file had CRLF line endings.
-- Status: Vivado 38/38 reported by the author; CI result not yet confirmed.
+- (Status at the time of this entry: CI result not yet confirmed; see the entries above.)
+
+## Audit pass 1 (written before any simulator was available)
 
 No simulator was available, so **nothing below was compiled or simulated**. The only executed artefact is the Python
 algorithm model (`docs/model/fifo_model.py`, 400 random configurations: 0 errors, max stale-flag run = SYNC_STAGES+1).
