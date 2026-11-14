@@ -1,14 +1,14 @@
 #!/bin/sh
 # usage (from repo root):  scripts/run.sh <stage 0|1|2|3> [iverilog|riviera]
-#   env: SEED=<n> (default 1)   WAVES=0|1 (default 1)
+#   env: SEED=<n> (default 1)   WAVES=0|1 (default 0; 1 writes waveforms/tb_async_fifo.vcd)
 # stage 0 = every test in one simulation (also produces the report files).
 # Exit status: 0 only if the simulation compiled, ran, printed "FINAL: PASS" and reported no error lines.
-STAGE=${1:-0}; SIM=${2:-iverilog}; SEED=${SEED:-1}; WAVES=${WAVES:-1}
+STAGE=${1:-0}; SIM=${2:-iverilog}; SEED=${SEED:-1}; WAVES=${WAVES:-0}
 mkdir -p reports build waveforms
 SRC="rtl/synchronizer.sv rtl/gray_encoder.sv rtl/write_pointer.sv rtl/read_pointer.sv rtl/full_empty_logic.sv rtl/fifo_memory.sv rtl/async_fifo.sv verification/scoreboard.sv verification/assertions.sv verification/coverage.sv verification/tb_async_fifo.sv"
 LOG=reports/run_stage${STAGE}.log
 : > "$LOG"
-PLUS="+STAGE=$STAGE +seed=$SEED"; [ "$WAVES" = "0" ] && PLUS="$PLUS +nowave"
+PLUS="+STAGE=$STAGE +seed=$SEED"; [ "$WAVES" = "1" ] && PLUS="$PLUS +vcd"
 
 case "$SIM" in
   iverilog)
