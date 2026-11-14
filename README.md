@@ -33,7 +33,7 @@ Counts differ slightly from CI because random streams differ between simulators.
 ### Coverage notes
 EVENT bins are 100% covered. CROSS coverage is 23 / 32; the 9 missed bins (all seeds, listed in
 `reports/functional_coverage.txt`) are classified in [docs/verification_plan.md](docs/verification_plan.md)
-(4 unreachable by construction, 5 reachable but not yet hit). Event-bin coverage is hand-written functional coverage,
+(3 unreachable by construction, 6 reachable but not yet hit). Event-bin coverage is hand-written functional coverage,
 not RTL code coverage and not formal CDC proof.
 
 ### Waveforms (GTKWave, stage 1 run, seed 1)
@@ -142,11 +142,11 @@ Workflow: `.github/workflows/regression.yml` (Icarus Verilog on `ubuntu-24.04`).
 - Scoreboard cannot tell loss from reordering from corruption; it reports a data mismatch.
 - `dout` uses an asynchronous memory read (LUT-RAM/register-file style); no block-RAM mapping (see architecture.md).
 - Reset is applied at fixed offsets, not randomly near clock edges (T50 pending).
-- CROSS coverage is 23 / 32; 4 of the missed bins are unreachable by construction and 5 need directed tests
+- CROSS coverage is 23 / 32; 3 of the missed bins are unreachable by construction and 6 need directed tests
   (see docs/verification_plan.md).
 - Native-SVA mode exists but has not been run; CI uses Icarus with procedural checkers.
 
 ## Future work
-Directed tests for the 5 reachable missed cross bins and exclusion of the 4 unreachable ones; reset near clock edges
+Directed tests for the 6 reachable missed cross bins and exclusion of the 3 unreachable ones; reset near clock edges
 (T50); negative tests and bug injection; a native-SVA run in Riviera-PRO/XSim; static CDC and formal checks;
 a block-RAM variant with a registered-read interface.
