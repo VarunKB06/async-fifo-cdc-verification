@@ -1,3 +1,4 @@
+`timescale 1ps/1ps
 // Independent reference model, race-free across two unrelated clocks.
 //
 // Why the old version raced: one SystemVerilog queue was pushed from the wr_clk process and popped from the
