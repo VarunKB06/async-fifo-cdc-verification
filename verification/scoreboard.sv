@@ -39,7 +39,7 @@ module scoreboard #(
     localparam int RB        = 4 * DEPTH;          // circular reference buffer (occupancy never exceeds DEPTH)
     localparam int LAT_LIMIT = SYNC_STAGES + 1;    // max legal destination edges with a stale pessimistic flag
 
-    logic [DW-1:0] ref_data [RB];
+    logic [DW-1:0] ref_data [0:RB-1];
     integer        wr_cnt = 0, rd_cnt = 0;         // accepted writes / reads since last reset
     time           wr_last_t = 0, rd_last_t = 0;   // time of most recent accepted write / read
     integer        full_stuck = 0, empty_stuck = 0;
@@ -49,8 +49,8 @@ module scoreboard #(
     wire active = wr_rst_n & rd_rst_n;
     assign occ  = wr_cnt - rd_cnt;                 // monitors' view; read it away from clock edges
 
-    task automatic err(input string m);
-        begin errors = errors + 1; $display("[SB ERROR] t=%0t %s", $time, m); end
+    task automatic err(input [8*80-1:0] m);
+        begin errors = errors + 1; $display("[SB ERROR] t=%0t %0s", $time, m); end
     endtask
 
     // ---------------- reset flush
