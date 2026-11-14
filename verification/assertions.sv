@@ -1,3 +1,4 @@
+`timescale 1ps/1ps
 // Protocol / pointer / CDC checkers with EQUIVALENT intent in two implementations:
 //   +define+USE_SVA  : native SystemVerilog Assertions (Riviera-PRO, XSim, Questa/Xcelium). Not Icarus.
 //   (default)        : PROCEDURAL checkers (Icarus). These are NOT native SVA and are reported as such.
