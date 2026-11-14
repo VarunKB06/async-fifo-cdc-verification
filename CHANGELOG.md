@@ -1,5 +1,12 @@
 # Change log
 
+## CI fix 2 (Icarus compile errors from the first CI run)
+- `coverage.sv`: the `` `PR `` report macro was rejected by Icarus (syntax errors at lines 150-164 in every job);
+  replaced by a task `pr()`. Removed the string-returning function `occ_name` (cross X1 now printed explicitly).
+- `scoreboard.sv`, `assertions.sv`: message arguments are packed vectors instead of `string`.
+- `scoreboard.sv`, `synchronizer.sv`: unpacked arrays use explicit `[0:N-1]` bounds.
+- Behaviour unchanged; Vivado baseline should be re-run once to confirm.
+
 ## CI fix (workflow rewrite)
 - Replaced the workflow: no dependence on executable bits (the old `./scripts/check_model.sh` call failed with exit
   126 because the file was committed without +x). Python model is now run as `python3 docs/model/fifo_model.py`.
@@ -10,8 +17,6 @@
 - `scripts/run.sh`: `WAVES=1` now passes `+vcd` (default off).
 - Added `.gitattributes` (LF endings for `.sh/.sv/.yml/.py`); the old testbench file had CRLF line endings.
 - Status: Vivado 38/38 reported by the author; CI result not yet confirmed.
-
-## Audit pass 1 (earlier)
 
 No simulator was available, so **nothing below was compiled or simulated**. The only executed artefact is the Python
 algorithm model (`docs/model/fifo_model.py`, 400 random configurations: 0 errors, max stale-flag run = SYNC_STAGES+1).
