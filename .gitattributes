@@ -1,0 +1,8 @@
+# Keep line endings LF so shell scripts and SystemVerilog behave the same on Windows, Linux and CI.
+* text=auto
+*.sh  text eol=lf
+*.sv  text eol=lf
+*.v   text eol=lf
+*.py  text eol=lf
+*.yml text eol=lf
+*.md  text eol=lf
