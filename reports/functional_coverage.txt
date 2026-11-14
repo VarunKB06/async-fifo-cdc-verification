@@ -1,0 +1,63 @@
+=== FUNCTIONAL COVERAGE (hand-written bins; not code coverage, not covergroups) ===
+-- EVENT BINS --
+  [HIT ] status: full observed
+  [HIT ] status: empty observed
+  [HIT ] status: empty->nonempty
+  [HIT ] status: nonempty->empty
+  [HIT ] status: nonfull->full
+  [HIT ] status: full->nonfull
+  [HIT ] op: write only (no concurrent read)
+  [HIT ] op: read only (no concurrent write)
+  [HIT ] op: write with concurrent read
+  [HIT ] op: no operation requested
+  [HIT ] op: blocked write
+  [HIT ] op: blocked read
+  [HIT ] occupancy: empty
+  [HIT ] occupancy: low
+  [HIT ] occupancy: medium
+  [HIT ] occupancy: high
+  [HIT ] occupancy: maximum
+  [HIT ] cdc: write clock faster
+  [HIT ] cdc: read clock faster
+  [HIT ] cdc: similar frequencies
+  [HIT ] cdc: shifted clock phase
+  [HIT ] pointer wrap: write
+  [HIT ] pointer wrap: read
+  [HIT ] reset at empty
+  [HIT ] reset at full
+  [HIT ] reset during write activity
+  [HIT ] reset during read activity
+  [HIT ] recovery: first write after reset
+  [HIT ] recovery: first read after reset
+  [HIT ] wgray bit 0 toggled
+  [HIT ] wgray bit 1 toggled
+  [HIT ] wgray bit 2 toggled
+  [HIT ] wgray bit 3 toggled
+  [HIT ] wgray bit 4 toggled
+  [HIT ] rgray bit 0 toggled
+  [HIT ] rgray bit 1 toggled
+  [HIT ] rgray bit 2 toggled
+  [HIT ] rgray bit 3 toggled
+  [HIT ] rgray bit 4 toggled
+EVENT BINS COVERED: 39 / 39
+-- CROSS BINS --
+ X1 occupancy x write op (wo=write-only, wr=write+read, bw=blocked write)
+   occ=0     wo:HIT  wr:MISS bw:MISS
+   occ low   wo:HIT  wr:HIT  bw:MISS
+   occ med   wo:HIT  wr:HIT  bw:HIT 
+   occ high  wo:HIT  wr:HIT  bw:HIT 
+   occ max   wo:MISS wr:MISS bw:HIT 
+ X2 clock ratio x write op (wo / wr)
+   wr_faster wo:HIT  wr:HIT 
+   rd_faster wo:HIT  wr:HIT 
+   similar   wo:HIT  wr:HIT 
+ X3 FIFO state at reset x activity (wr active / rd active / idle)
+   empty     w:MISS r:MISS i:HIT 
+   partial   w:HIT  r:HIT  i:HIT 
+   full      w:MISS r:MISS i:HIT 
+ X4 pointer wrap x concurrent op
+   write wrap with read:  HIT 
+   read wrap with write:  HIT 
+CROSS BINS COVERED: 23 / 32
+Unreachable/unjustified bins are NOT excluded automatically; see docs/verification_plan.md.
+=== END ===
