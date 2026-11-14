@@ -1,4 +1,17 @@
-# Change log (audit pass 1)
+# Change log
+
+## CI fix (workflow rewrite)
+- Replaced the workflow: no dependence on executable bits (the old `./scripts/check_model.sh` call failed with exit
+  126 because the file was committed without +x). Python model is now run as `python3 docs/model/fifo_model.py`.
+- Direct `iverilog -g2012 -s tb_async_fifo` compile and `vvp` run per seed (1, 2, 3), result checks, logs uploaded
+  with `if: always()`, separate VCD job (stage 1, seed 1).
+- `tb_async_fifo.sv`: VCD dump only with `+vcd` (was unconditional relative path; XSim could not open it).
+  `+nowave` removed. No change to checks, scoreboard, assertions or coverage.
+- `scripts/run.sh`: `WAVES=1` now passes `+vcd` (default off).
+- Added `.gitattributes` (LF endings for `.sh/.sv/.yml/.py`); the old testbench file had CRLF line endings.
+- Status: Vivado 38/38 reported by the author; CI result not yet confirmed.
+
+## Audit pass 1 (earlier)
 
 No simulator was available, so **nothing below was compiled or simulated**. The only executed artefact is the Python
 algorithm model (`docs/model/fifo_model.py`, 400 random configurations: 0 errors, max stale-flag run = SYNC_STAGES+1).
