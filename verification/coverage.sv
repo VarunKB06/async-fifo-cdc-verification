@@ -1,3 +1,4 @@
+`timescale 1ps/1ps
 // Hand-written functional coverage collector (plain Verilog/SV, works in Icarus).
 //   * EVENT bins : single-condition events (status, ops, occupancy, ratio/phase, wrap, Gray bit toggles, reset).
 //   * CROSS bins : combinations of those events. Reported SEPARATELY from event bins.
