@@ -1,0 +1,26 @@
+# UNTESTED workflow (no simulator was available when it was written). It fails if any stage fails:
+# scripts/run_all.sh exits nonzero on compile failure, simulator error, watchdog or any failed check.
+name: regression
+on: [push, pull_request]
+jobs:
+  sim:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        seed: [1, 2, 3]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Icarus Verilog
+        run: sudo apt-get update && sudo apt-get install -y iverilog
+      - name: Simulator version (needs queue/SV support; 12+ recommended)
+        run: iverilog -V | head -1
+      - name: Algorithm model sanity (python, not RTL)
+        run: ./scripts/check_model.sh
+      - name: Regression
+        run: SEED=${{ matrix.seed }} WAVES=0 ./scripts/run_all.sh
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: logs-seed${{ matrix.seed }}
+          path: reports/
