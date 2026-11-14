@@ -6,7 +6,7 @@ functional event-bin coverage and a scripted regression.
 
 > **Status: simulated and passing.** The full regression (38 tests) passes in **GitHub Actions with Icarus Verilog**
 > for seeds 1, 2 and 3, and the author's local **Vivado 2026.1 XSim** run reported the same 38/38. Assertions are
-> procedural checkers, not native SVA. Logs are in `reports/ci_logs/`; the waveform views below are drawn from the CI VCD.
+> procedural checkers, not native SVA. Logs are in `reports/ci_logs/`; waveforms are in `waveforms/`.
 
 ## Results
 
@@ -36,37 +36,75 @@ EVENT bins are 100% covered. CROSS coverage is 23 / 32; the 9 missed bins (all s
 (4 unreachable by construction, 5 reachable but not yet hit). Event-bin coverage is hand-written functional coverage,
 not RTL code coverage and not formal CDC proof.
 
-### Waveforms (stage 1, seed 1, from the CI VCD `waveforms/tb_async_fifo_stage1_seed1.vcd`)
-These images are rendered from the VCD by `scripts/vcd_to_png.py` (matplotlib), not GTKWave screenshots; open the VCD
-in GTKWave to inspect any signal.
+### Waveforms (GTKWave, stage 1 run, seed 1)
+Captured in GTKWave from the CI waveform [`waveforms/tb_async_fifo_stage1_seed1.vcd`](waveforms/tb_async_fifo_stage1_seed1.vcd)
+(stage 1 = tests T1-T10, 0 to 6.58 us). Open the `.vcd` in GTKWave to inspect any signal. The reset pulses between
+tests are the testbench's system resets.
 
-![T2 single write/read](waveforms/t2_single_write_read.png)
-*T2: one write is accepted; `empty` de-asserts only after the write pointer crosses the synchronizer; the read pops the word and `empty` returns.*
+![Pointers, Gray code and synchronizer](waveforms/gtkwave_pointers_gray_sync.png)
+*Binary and Gray pointers. Every accepted write (`wr_ack`) or read (`rd_inc`) moves the Gray pointer by one bit, and
+`wgray_sync` follows `wgray` a couple of clocks later because it passes through the synchronizer.*
 
-![T5 fill to full](waveforms/t5_fill_to_full.png)
-*T5: sixteen consecutive writes raise occupancy 1 to 16; `full` asserts with the 16th write and `wr_ack` stops.*
+![Memory data path](waveforms/gtkwave_memory_datapath.png)
+*`wr_we` pulses store `din` at `waddr`; `dout` shows the word at `raddr` (first-word fall-through). The red `xx` values
+are locations that have not been written yet; `dout` is a don't-care while the FIFO is empty.*
 
-![T9 recovery after full](waveforms/t9_full_recovery.png)
-*T9: reads reduce occupancy; `full` stays high for a few write-clock edges (read pointer in the synchronizer) before clearing.*
+![Full and empty flags](waveforms/gtkwave_flags_full_empty.png)
+*`empty` is high after reset and drops once a write has crossed the synchronizer; `full` asserts when the FIFO fills
+and clears after reads. Each flag follows its `_next` signal by one clock because the flags are registered.*
 
 ## Why an asynchronous FIFO
 A producer and a consumer on unrelated clocks cannot share a binary counter safely. Only Gray-coded pointers
 (one bit changes per step) go through synchronizers, so a sampled pointer is always a valid old-or-new value.
 
 ## Layout
-`rtl/` design, `verification/` testbench, scoreboard, assertions, coverage and `tests/`, `scripts/` runners,
-`docs/` specification and plan, `reports/` and `waveforms/` (filled by real runs).
+```
+rtl/            async_fifo, fifo_memory, write_pointer, read_pointer, gray_encoder, synchronizer, full_empty_logic
+verification/   tb_async_fifo (top), scoreboard, assertions, coverage, tests/ (basic, boundary, cdc, reset, random)
+scripts/        run.sh, run_stage1-3.sh, run_all.sh, check_model.sh
+docs/           architecture.md, verification_plan.md, model/fifo_model.py (Python algorithm model, not RTL)
+reports/        simulation / assertion / coverage summaries and ci_logs/ (real CI output)
+waveforms/      stage-1 VCD from CI and GTKWave screenshots
+.github/workflows/regression.yml
+```
 Design details, interface timing (combinational first-word-fall-through `dout`), flag equations and the reset
-protocol are in [docs/architecture.md](docs/architecture.md); the test list and status in
+protocol are in [docs/architecture.md](docs/architecture.md); the test matrix and coverage analysis are in
 [docs/verification_plan.md](docs/verification_plan.md).
+
+## Verification architecture
+```
+ random / directed drivers --> async_fifo (wr_clk, rd_clk independent) --> dout, full, empty, wr_ack, rd_valid
+        |                                   |                                   |
+        |                         assertions (pointer, Gray,                scoreboard (reference model:
+        |                         synchronizer, reset checks;               accepted writes in, accepted reads
+        |                         procedural, uses DUT pointers)            compared; never uses DUT pointers)
+        +--> coverage (event bins + cross bins) <---------------------------------+
+```
+- **Scoreboard:** independent reference of accepted writes; each accepted read is compared with the oldest unread word.
+  Write and read monitors own separate counters and use time stamps, so coincident clock edges are handled
+  deterministically. It also checks flag correctness (`full` at maximum occupancy, `empty` at zero) and that a stale flag
+  clears within `SYNC_STAGES+1` edges.
+- **Assertions:** procedural checkers (not native SVA) for no write when full / read when empty, pointer step and hold,
+  Gray one-bit change, reset values, synchronizer latency and memory-write protection.
+- **Coverage:** hand-written functional event bins (39) and cross bins (32), reported separately.
+
+## Tests (38)
+| Group | Tests |
+|---|---|
+| Basic | T1-T10: reset, single/multiple write and read, full, empty, write while full, read while empty, recovery |
+| Boundary | T16, T18, T20: max/min occupancy, repeated fill/drain (pointer wrap), full/empty boundaries |
+| Clocks and CDC | T21, T23, T24, T26, T36, T37, T38: concurrent traffic, clock ratios, phase shift |
+| Sync latency / near boundary | T27, T28, T29, T31, T32, T33 |
+| Reset | T44-T49: reset during write, read, simultaneous traffic, full, empty; recovery |
+| Random | T51, T54, T55, T56, T57, T58: random traffic, clock ratios, resets, long stress, boundaries |
 
 ## Run
 ```
-./scripts/run_stage1.sh      # basic tests
-./scripts/run_stage2.sh      # boundary + clock ratio/phase tests
-./scripts/run_stage3.sh      # reset + randomized tests
-./scripts/run_all.sh         # stages 1,2,3 + combined run; writes reports/*.txt; nonzero exit on ANY failure
-SEED=7 WAVES=1 bash scripts/run_all.sh iverilog      # or: ./scripts/run_all.sh riviera  (native SVA)
+bash scripts/run_stage1.sh      # basic tests
+bash scripts/run_stage2.sh      # boundary + clock ratio/phase tests
+bash scripts/run_stage3.sh      # reset + randomized tests
+bash scripts/run_all.sh         # stages 1,2,3 + combined run; writes reports/*.txt; nonzero exit on ANY failure
+SEED=7 WAVES=1 bash scripts/run_all.sh iverilog      # WAVES=1 writes waveforms/tb_async_fifo.vcd; or: bash scripts/run_all.sh riviera
 ```
 Run from the repo root. Icarus Verilog needs `-g2012` support for queues and SystemVerilog tasks (version 12
 recommended). With Icarus the assertions are **procedural checkers, not native SVA**; Riviera-PRO/XSim uses real SVA
@@ -81,11 +119,10 @@ Workflow: `.github/workflows/regression.yml` (Icarus Verilog on `ubuntu-24.04`).
   failed test / scoreboard error / assertion failure is reported, or the requested seed is missing from the log.
   Artifacts: `sim-logs-seed-1|2|3` (compile + simulation logs, model sanity log).
 - **Job `waveform`:** runs stage 1 with `+vcd` and uploads `waveform-stage1-seed1` (`.vcd`, open with GTKWave).
-  To refresh the images: `python3 scripts/vcd_to_png.py waveforms/tb_async_fifo_stage1_seed1.vcd waveforms/`.
 - The workflow calls the tools directly (no shell-script permission dependence). Logs/waveforms are uploaded even when
   a step fails (`if: always()`).
 - The testbench writes a VCD only when `+vcd` is given, so Vivado/XSim runs no longer try to open a relative path.
-- Download artifacts from the run summary page (bottom, *Artifacts*).
+- Download artifacts from the run summary page (bottom, *Artifacts*): `sim-logs-seed-N` and `waveform-stage1-seed1`.
 
 ## Implemented vs verified
 | Item | Written | Run / result |
@@ -105,3 +142,11 @@ Workflow: `.github/workflows/regression.yml` (Icarus Verilog on `ubuntu-24.04`).
 - Scoreboard cannot tell loss from reordering from corruption; it reports a data mismatch.
 - `dout` uses an asynchronous memory read (LUT-RAM/register-file style); no block-RAM mapping (see architecture.md).
 - Reset is applied at fixed offsets, not randomly near clock edges (T50 pending).
+- CROSS coverage is 23 / 32; 4 of the missed bins are unreachable by construction and 5 need directed tests
+  (see docs/verification_plan.md).
+- Native-SVA mode exists but has not been run; CI uses Icarus with procedural checkers.
+
+## Future work
+Directed tests for the 5 reachable missed cross bins and exclusion of the 4 unreachable ones; reset near clock edges
+(T50); negative tests and bug injection; a native-SVA run in Riviera-PRO/XSim; static CDC and formal checks;
+a block-RAM variant with a registered-read interface.
