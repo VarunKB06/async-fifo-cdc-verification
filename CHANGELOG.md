@@ -1,5 +1,13 @@
 # Change log
 
+## CI fix 3 (first Icarus simulation: 36/38 tests failed)
+- Root cause: `scoreboard.sv` (and the other verification modules) had no `timescale`. Icarus compiled them before the
+  testbench's `timescale 1ps/1ps`, so they used the default 1 s unit and `$time` was always 0. The scoreboard's
+  same-time-stamp causality rule (`wr_last_t == $time`) was therefore always true and mis-counted occupancy. Vivado
+  inherited the testbench timescale, which is why it passed. Fixed by adding `timescale 1ps/1ps` to
+  `scoreboard.sv`, `assertions.sv`, `coverage.sv`.
+- `tb_async_fifo.sv`: summary printed `seed` after `$random(seed)` had modified it; it now prints the requested seed.
+
 ## CI fix 2 (Icarus compile errors from the first CI run)
 - `coverage.sv`: the `` `PR `` report macro was rejected by Icarus (syntax errors at lines 150-164 in every job);
   replaced by a task `pr()`. Removed the string-returning function `occ_name` (cross X1 now printed explicitly).
