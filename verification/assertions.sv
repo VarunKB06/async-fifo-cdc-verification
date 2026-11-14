@@ -62,8 +62,8 @@ module assertions #(
     logic [AW:0] wg_hist [1:SYNC_STAGES];
     logic [AW:0] rg_hist [1:SYNC_STAGES];
 
-    task automatic bad(input string m);
-        begin fail_count = fail_count + 1; $display("[CHECK FAIL] (procedural) t=%0t %s", $time, m); end
+    task automatic bad(input [8*80-1:0] m);
+        begin fail_count = fail_count + 1; $display("[CHECK FAIL] (procedural) t=%0t %0s", $time, m); end
     endtask
 
     function automatic logic onehot(input logic [AW:0] v);
