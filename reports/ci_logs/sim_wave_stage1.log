@@ -1,0 +1,104 @@
+VCD info: dumpfile waveforms/tb_async_fifo.vcd opened for output.
+=== tb_async_fifo: stage=1 seed=1 ===
+[T1] START initial reset behaviour
+[T1] PASS  initial reset behaviour
+[T2] START single write and read
+[T2] PASS  single write and read
+[T3] START multiple sequential writes
+[T3] PASS  multiple sequential writes
+[T4] START multiple sequential reads
+[T4] PASS  multiple sequential reads
+[T5] START full detection
+[T5] PASS  full detection
+[T6] START empty detection
+[T6] PASS  empty detection
+[T7] START write attempt while full
+[T7] PASS  write attempt while full
+[T8] START read attempt while empty
+[T8] PASS  read attempt while empty
+[T9] START recovery after full
+[T9] PASS  recovery after full
+[T10] START recovery after empty
+[T10] PASS  recovery after empty
+=== FUNCTIONAL COVERAGE (hand-written bins; not code coverage, not covergroups) ===
+-- EVENT BINS --
+  [HIT ] status: full observed
+  [HIT ] status: empty observed
+  [HIT ] status: empty->nonempty
+  [HIT ] status: nonempty->empty
+  [HIT ] status: nonfull->full
+  [HIT ] status: full->nonfull
+  [HIT ] op: write only (no concurrent read)
+  [HIT ] op: read only (no concurrent write)
+  [MISS] op: write with concurrent read
+  [HIT ] op: no operation requested
+  [HIT ] op: blocked write
+  [HIT ] op: blocked read
+  [HIT ] occupancy: empty
+  [HIT ] occupancy: low
+  [HIT ] occupancy: medium
+  [HIT ] occupancy: high
+  [HIT ] occupancy: maximum
+  [HIT ] cdc: write clock faster
+  [MISS] cdc: read clock faster
+  [MISS] cdc: similar frequencies
+  [MISS] cdc: shifted clock phase
+  [HIT ] pointer wrap: write
+  [HIT ] pointer wrap: read
+  [HIT ] reset at empty
+  [MISS] reset at full
+  [MISS] reset during write activity
+  [MISS] reset during read activity
+  [HIT ] recovery: first write after reset
+  [HIT ] recovery: first read after reset
+  [HIT ] wgray bit 0 toggled
+  [HIT ] wgray bit 1 toggled
+  [HIT ] wgray bit 2 toggled
+  [HIT ] wgray bit 3 toggled
+  [HIT ] wgray bit 4 toggled
+  [HIT ] rgray bit 0 toggled
+  [HIT ] rgray bit 1 toggled
+  [HIT ] rgray bit 2 toggled
+  [HIT ] rgray bit 3 toggled
+  [HIT ] rgray bit 4 toggled
+EVENT BINS COVERED: 32 / 39
+-- CROSS BINS --
+ X1 occupancy x write op (wo=write-only, wr=write+read, bw=blocked write)
+   occ=0     wo:HIT  wr:MISS bw:MISS
+   occ low   wo:HIT  wr:MISS bw:MISS
+   occ med   wo:HIT  wr:MISS bw:MISS
+   occ high  wo:HIT  wr:MISS bw:MISS
+   occ max   wo:MISS wr:MISS bw:HIT 
+ X2 clock ratio x write op (wo / wr)
+   wr_faster wo:HIT  wr:MISS
+   rd_faster wo:MISS wr:MISS
+   similar   wo:MISS wr:MISS
+ X3 FIFO state at reset x activity (wr active / rd active / idle)
+   empty     w:MISS r:MISS i:HIT 
+   partial   w:MISS r:MISS i:MISS
+   full      w:MISS r:MISS i:MISS
+ X4 pointer wrap x concurrent op
+   write wrap with read:  MISS
+   read wrap with write:  MISS
+CROSS BINS COVERED: 7 / 32
+Unreachable/unjustified bins are NOT excluded automatically; see docs/verification_plan.md.
+=== END ===
+=== ASSERTION SUMMARY ===
+mode: PROCEDURAL checkers (not native SVA)
+assertion/check failures: 0
+procedural check evaluations (wr+rd edges): 1862
+=== END ===
+=== SUMMARY ===
+seed: 1   stage: 1
+total tests: 10
+passed tests: 10
+failed tests: 0
+total checks: 1082 (tb 31 + scoreboard 1051)
+scoreboard writes/reads compared: 78 / 78
+assertion failures: 0
+scoreboard errors: 0
+functional EVENT bins covered: 32 / 39
+functional CROSS bins covered: 7 / 32
+FINAL: PASS
+=== END ===
+verification/tb_async_fifo.sv:240: $finish called at 6580330 (1ps)
