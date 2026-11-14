@@ -135,40 +135,41 @@ module coverage #(parameter int AW = 4) (
                     + count_bits({55'b0, x_rst}, 9) + x_wrapw_rd + x_wrapr_wr; end
     endfunction
 
-    function string occ_name(input integer i);
-        case (i) 0: occ_name = "occ=0"; 1: occ_name = "occ low"; 2: occ_name = "occ med";
-                 3: occ_name = "occ high"; default: occ_name = "occ max"; endcase
-    endfunction
 
-    `define PR(i, s) begin $display("  [%s] %s", ev[i] ? "HIT " : "MISS", s); end
+    task pr(input integer idx, input [8*64-1:0] name);
+        begin $display("  [%s] %0s", ev[idx] ? "HIT " : "MISS", name); end
+    endtask
 
     task report;
         integer i, j;
         begin
             $display("=== FUNCTIONAL COVERAGE (hand-written bins; not code coverage, not covergroups) ===");
             $display("-- EVENT BINS --");
-            `PR(B_FULL,"status: full observed")       `PR(B_EMPTY,"status: empty observed")
-            `PR(B_E2NE,"status: empty->nonempty")     `PR(B_NE2E,"status: nonempty->empty")
-            `PR(B_NF2F,"status: nonfull->full")       `PR(B_F2NF,"status: full->nonfull")
-            `PR(B_WR_ONLY,"op: write only (no concurrent read)") `PR(B_RD_ONLY,"op: read only (no concurrent write)")
-            `PR(B_BOTH,"op: write with concurrent read") `PR(B_IDLE,"op: no operation requested")
-            `PR(B_BLK_WR,"op: blocked write")         `PR(B_BLK_RD,"op: blocked read")
-            `PR(B_OCC0,"occupancy: empty")            `PR(B_OCC_LOW,"occupancy: low")
-            `PR(B_OCC_MED,"occupancy: medium")        `PR(B_OCC_HIGH,"occupancy: high")
-            `PR(B_OCC_MAX,"occupancy: maximum")
-            `PR(B_WR_FAST,"cdc: write clock faster")  `PR(B_RD_FAST,"cdc: read clock faster")
-            `PR(B_SIMILAR,"cdc: similar frequencies") `PR(B_PHASE,"cdc: shifted clock phase")
-            `PR(B_WRAP_W,"pointer wrap: write")       `PR(B_WRAP_R,"pointer wrap: read")
-            `PR(B_RST_EMPTY,"reset at empty")         `PR(B_RST_FULL,"reset at full")
-            `PR(B_RST_WR,"reset during write activity") `PR(B_RST_RD,"reset during read activity")
-            `PR(B_RST_RECOV,"recovery: first write after reset") `PR(B_RST_RECOV_RD,"recovery: first read after reset")
+            pr(B_FULL,"status: full observed");       pr(B_EMPTY,"status: empty observed");
+            pr(B_E2NE,"status: empty->nonempty");     pr(B_NE2E,"status: nonempty->empty");
+            pr(B_NF2F,"status: nonfull->full");       pr(B_F2NF,"status: full->nonfull");
+            pr(B_WR_ONLY,"op: write only (no concurrent read)"); pr(B_RD_ONLY,"op: read only (no concurrent write)");
+            pr(B_BOTH,"op: write with concurrent read"); pr(B_IDLE,"op: no operation requested");
+            pr(B_BLK_WR,"op: blocked write");         pr(B_BLK_RD,"op: blocked read");
+            pr(B_OCC0,"occupancy: empty");            pr(B_OCC_LOW,"occupancy: low");
+            pr(B_OCC_MED,"occupancy: medium");        pr(B_OCC_HIGH,"occupancy: high");
+            pr(B_OCC_MAX,"occupancy: maximum");
+            pr(B_WR_FAST,"cdc: write clock faster");  pr(B_RD_FAST,"cdc: read clock faster");
+            pr(B_SIMILAR,"cdc: similar frequencies"); pr(B_PHASE,"cdc: shifted clock phase");
+            pr(B_WRAP_W,"pointer wrap: write");       pr(B_WRAP_R,"pointer wrap: read");
+            pr(B_RST_EMPTY,"reset at empty");         pr(B_RST_FULL,"reset at full");
+            pr(B_RST_WR,"reset during write activity"); pr(B_RST_RD,"reset during read activity");
+            pr(B_RST_RECOV,"recovery: first write after reset"); pr(B_RST_RECOV_RD,"recovery: first read after reset");
             for (i = 0; i < NG; i = i + 1) $display("  [%s] wgray bit %0d toggled", gw_tog[i] ? "HIT " : "MISS", i);
             for (i = 0; i < NG; i = i + 1) $display("  [%s] rgray bit %0d toggled", gr_tog[i] ? "HIT " : "MISS", i);
             $display("EVENT BINS COVERED: %0d / %0d", evt_hit(0), evt_total(0));
             $display("-- CROSS BINS --");
             $display(" X1 occupancy x write op (wo=write-only, wr=write+read, bw=blocked write)");
-            for (i = 0; i < 5; i = i + 1)
-                $display("   %-9s wo:%s wr:%s bw:%s", occ_name(i), x_occ_op[i*3]?"HIT ":"MISS", x_occ_op[i*3+1]?"HIT ":"MISS", x_occ_op[i*3+2]?"HIT ":"MISS");
+            $display("   occ=0     wo:%s wr:%s bw:%s", x_occ_op[0]?"HIT ":"MISS",  x_occ_op[1]?"HIT ":"MISS",  x_occ_op[2]?"HIT ":"MISS");
+            $display("   occ low   wo:%s wr:%s bw:%s", x_occ_op[3]?"HIT ":"MISS",  x_occ_op[4]?"HIT ":"MISS",  x_occ_op[5]?"HIT ":"MISS");
+            $display("   occ med   wo:%s wr:%s bw:%s", x_occ_op[6]?"HIT ":"MISS",  x_occ_op[7]?"HIT ":"MISS",  x_occ_op[8]?"HIT ":"MISS");
+            $display("   occ high  wo:%s wr:%s bw:%s", x_occ_op[9]?"HIT ":"MISS",  x_occ_op[10]?"HIT ":"MISS", x_occ_op[11]?"HIT ":"MISS");
+            $display("   occ max   wo:%s wr:%s bw:%s", x_occ_op[12]?"HIT ":"MISS", x_occ_op[13]?"HIT ":"MISS", x_occ_op[14]?"HIT ":"MISS");
             $display(" X2 clock ratio x write op (wo / wr)");
             $display("   wr_faster wo:%s wr:%s", x_ratio_op[0]?"HIT ":"MISS", x_ratio_op[1]?"HIT ":"MISS");
             $display("   rd_faster wo:%s wr:%s", x_ratio_op[2]?"HIT ":"MISS", x_ratio_op[3]?"HIT ":"MISS");
