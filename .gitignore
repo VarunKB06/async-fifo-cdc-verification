@@ -5,3 +5,6 @@ build/
 *.asdb
 work/
 transcript
+
+# commit the CI stage-1 waveform (small)
+!waveforms/*.vcd
