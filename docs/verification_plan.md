@@ -92,14 +92,16 @@ and each MISS has been explained.
 | - | negative tests / bug injection | pending | - | - |
 
 ## Cross-coverage analysis (CI seed 1; same 9 bins missed for seeds 1-3)
-This classification is by reasoning about the design, not tool-verified.
+This classification is by reasoning about the design, not tool-verified. A reachable bin is only confirmed once a
+directed test hits it.
 | Missed bin | Class |
 |---|---|
-| X1 occupancy=0 x write+concurrent read | unreachable: no read can be accepted at occupancy 0 |
-| X1 occupancy=0 x blocked write | unreachable: `full` cannot be set at occupancy 0 |
-| X1 occupancy=max x write-only | unreachable: a write cannot be accepted when full |
+| X1 occupancy=0 x write+concurrent read | unreachable: a read cannot be accepted at occupancy 0 |
+| X1 occupancy=max x write-only | unreachable: a write cannot be accepted when `full` is set at max occupancy |
 | X1 occupancy=max x write+read | unreachable: same reason |
-| X1 occupancy=low x blocked write | reachable (stale `full` while draining fast); needs a directed test |
-| X3 reset at empty x write active / read active | reachable; needs reset with `wr_en`/`rd_en` high at empty |
-| X3 reset at full x write active / read active | reachable; needs reset with `wr_en`/`rd_en` high at full |
-The four unreachable bins should be excluded and documented; the five reachable ones are the remaining coverage work.
+| X1 occupancy=0 x blocked write | reachable: `full` stays high for a few write edges after the read pointer moves, so with a much faster read clock the FIFO can drain to 0 while `full` is still set; needs fill, fast read clock, `wr_en` held high |
+| X1 occupancy=low x blocked write | reachable: same stale-`full` effect while draining |
+| X3 reset at empty x write active / read active | reachable: reset with `wr_en` / `rd_en` high at empty |
+| X3 reset at full x write active / read active | reachable: reset with `wr_en` / `rd_en` high at full |
+Plan: exclude the 3 unreachable bins with the reasons above and add directed tests for the 6 reachable bins. The
+maximum raw cross coverage is therefore 29 / 32; 100% is only meaningful for the 29 reachable bins after the exclusion.
