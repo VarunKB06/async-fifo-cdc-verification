@@ -13,7 +13,7 @@ module synchronizer #(
         $finish;
     end
 
-    (* ASYNC_REG = "TRUE", keep = "true" *) logic [W-1:0] sync [STAGES];
+    (* ASYNC_REG = "TRUE", keep = "true" *) logic [W-1:0] sync [0:STAGES-1];
 
     always_ff @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin
