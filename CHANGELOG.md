@@ -1,5 +1,12 @@
 # Change log
 
+## Results and documentation update
+- CI green: 38/38 tests pass for seeds 1, 2, 3 (Icarus Verilog); results, per-seed logs, coverage and assertion
+  summaries committed under `reports/`; stage-1 VCD committed under `waveforms/`.
+- Added `scripts/vcd_to_png.py` and three waveform images rendered from the CI VCD (not GTKWave screenshots).
+- README and `docs/verification_plan.md` updated with real results, cross-bin analysis and a status table.
+- `.gitignore`: committed `waveforms/*.vcd` allowed.
+
 ## CI fix 3 (first Icarus simulation: 36/38 tests failed)
 - Root cause: `scoreboard.sv` (and the other verification modules) had no `timescale`. Icarus compiled them before the
   testbench's `timescale 1ps/1ps`, so they used the default 1 s unit and `$time` was always 0. The scoreboard's
