@@ -1,8 +1,8 @@
 # Verification plan, matrix and status
 
-**Execution status: no test in this repository has been executed by the author** (no simulator was available).
-The "Result" column therefore says `not run` everywhere. Replace it with PASS/FAIL only from
-`reports/run_stage*.log`.
+**Execution status:** all 38 implemented tests passed with seeds 1, 2 and 3 in GitHub Actions (Icarus Verilog), logs in
+`reports/ci_logs/`, and 38/38 in the author's local Vivado 2026.1 XSim run. Native-SVA mode was not run. Rows that say
+"via ..." are checked continuously by the procedural checkers (0 failures); rows marked pending were not implemented.
 
 ## Environment
 Procedural SystemVerilog testbench (`verification/tb_async_fifo.sv`), independent clocks (variable period, phase
@@ -44,49 +44,62 @@ and each MISS has been explained.
 ## Test matrix
 | ID | Description | Status | File | Result |
 |---|---|---|---|---|
-| T1 | initial reset | implemented | tests/basic_tests.sv | not run |
-| T2 | single write/read | implemented | basic_tests.sv | not run |
-| T3 | sequential writes | implemented | basic_tests.sv | not run |
-| T4 | sequential reads | implemented | basic_tests.sv | not run |
-| T5 | full detection | implemented | basic_tests.sv | not run |
-| T6 | empty detection | implemented | basic_tests.sv | not run |
-| T7 | write while full | implemented | basic_tests.sv | not run |
-| T8 | read while empty | implemented | basic_tests.sv | not run |
-| T9 | recovery after full | implemented | basic_tests.sv | not run |
-| T10 | recovery after empty | implemented | basic_tests.sv | not run |
-| T11/T12 | pointer increment | via assertions W2/R2 (every test) | assertions.sv | not run |
-| T13/T19 | wraparound | via T18 + wrap bins | boundary_tests.sv | not run |
-| T14/T15 | Gray conversion / one-bit change | via W4/W5/R4/R5 | assertions.sv | not run |
-| T16/T17 | max/min occupancy | implemented (T16) | boundary_tests.sv | not run |
-| T18 | repeated fill/drain | implemented | boundary_tests.sv | not run |
-| T20 | full/empty boundaries | implemented | boundary_tests.sv | not run |
-| T21 | simultaneous r/w | implemented | cdc_tests.sv | not run |
-| T22 | continuous r/w | covered by T21 | cdc_tests.sv | not run |
-| T23/T24 | write faster / read faster | implemented | cdc_tests.sv | not run |
-| T25/T36 | clock phase | implemented (T36) | cdc_tests.sv | not run |
-| T26 | unequal periods | implemented | cdc_tests.sv | not run |
-| T27/T28 | concurrency near full / empty | implemented | cdc_tests.sv | not run |
-| T29 | repeated concurrent fill/drain | implemented | cdc_tests.sv | not run |
-| T30 | long duration | = T56 | random_tests.sv | not run |
-| T31 | write-pointer sync latency | implemented | cdc_tests.sv | not run |
-| T32 | read-pointer sync latency | implemented | cdc_tests.sv | not run |
-| T33 | latency over clock ratios | implemented | cdc_tests.sv | not run |
-| T34 | pointer stability | via W3/R3 | assertions.sv | not run |
-| T35/T37/T38 | clock ratios | implemented (T37, T38) | cdc_tests.sv | not run |
-| T39 | wrap during CDC activity | via T21/T56 + X4 bins | - | not run |
-| T40 | randomized CDC stress | = T54 | random_tests.sv | not run |
-| T41 | initial reset | = T1 | basic_tests.sv | not run |
+| T1 | initial reset | implemented | tests/basic_tests.sv | PASS (CI seeds 1-3) |
+| T2 | single write/read | implemented | basic_tests.sv | PASS (CI seeds 1-3) |
+| T3 | sequential writes | implemented | basic_tests.sv | PASS (CI seeds 1-3) |
+| T4 | sequential reads | implemented | basic_tests.sv | PASS (CI seeds 1-3) |
+| T5 | full detection | implemented | basic_tests.sv | PASS (CI seeds 1-3) |
+| T6 | empty detection | implemented | basic_tests.sv | PASS (CI seeds 1-3) |
+| T7 | write while full | implemented | basic_tests.sv | PASS (CI seeds 1-3) |
+| T8 | read while empty | implemented | basic_tests.sv | PASS (CI seeds 1-3) |
+| T9 | recovery after full | implemented | basic_tests.sv | PASS (CI seeds 1-3) |
+| T10 | recovery after empty | implemented | basic_tests.sv | PASS (CI seeds 1-3) |
+| T11/T12 | pointer increment | via assertions W2/R2 (every test) | assertions.sv | checked, 0 failures (CI) |
+| T13/T19 | wraparound | via T18 + wrap bins | boundary_tests.sv | checked, 0 failures (CI) |
+| T14/T15 | Gray conversion / one-bit change | via W4/W5/R4/R5 | assertions.sv | checked, 0 failures (CI) |
+| T16/T17 | max/min occupancy | implemented (T16) | boundary_tests.sv | PASS (CI seeds 1-3) |
+| T18 | repeated fill/drain | implemented | boundary_tests.sv | PASS (CI seeds 1-3) |
+| T20 | full/empty boundaries | implemented | boundary_tests.sv | PASS (CI seeds 1-3) |
+| T21 | simultaneous r/w | implemented | cdc_tests.sv | PASS (CI seeds 1-3) |
+| T22 | continuous r/w | covered by T21 | cdc_tests.sv | PASS (CI seeds 1-3) |
+| T23/T24 | write faster / read faster | implemented | cdc_tests.sv | PASS (CI seeds 1-3) |
+| T25/T36 | clock phase | implemented (T36) | cdc_tests.sv | PASS (CI seeds 1-3) |
+| T26 | unequal periods | implemented | cdc_tests.sv | PASS (CI seeds 1-3) |
+| T27/T28 | concurrency near full / empty | implemented | cdc_tests.sv | PASS (CI seeds 1-3) |
+| T29 | repeated concurrent fill/drain | implemented | cdc_tests.sv | PASS (CI seeds 1-3) |
+| T30 | long duration | = T56 | random_tests.sv | PASS (CI seeds 1-3) |
+| T31 | write-pointer sync latency | implemented | cdc_tests.sv | PASS (CI seeds 1-3) |
+| T32 | read-pointer sync latency | implemented | cdc_tests.sv | PASS (CI seeds 1-3) |
+| T33 | latency over clock ratios | implemented | cdc_tests.sv | PASS (CI seeds 1-3) |
+| T34 | pointer stability | via W3/R3 | assertions.sv | checked, 0 failures (CI) |
+| T35/T37/T38 | clock ratios | implemented (T37, T38) | cdc_tests.sv | PASS (CI seeds 1-3) |
+| T39 | wrap during CDC activity | via T21/T56 + X4 bins | - | checked, 0 failures (CI) |
+| T40 | randomized CDC stress | = T54 | random_tests.sv | PASS (CI seeds 1-3) |
+| T41 | initial reset | = T1 | basic_tests.sv | PASS (CI seeds 1-3) |
 | T42/T43 | single-domain reset | **not supported** (system reset only) | - | n/a |
-| T44/T45 | reset during write / read | implemented | reset_tests.sv | not run |
-| T46 | reset during simultaneous ops | implemented | reset_tests.sv | not run |
-| T47/T48 | reset full / empty | implemented | reset_tests.sv | not run |
-| T49 | reset recovery | implemented | reset_tests.sv | not run |
+| T44/T45 | reset during write / read | implemented | reset_tests.sv | PASS (CI seeds 1-3) |
+| T46 | reset during simultaneous ops | implemented | reset_tests.sv | PASS (CI seeds 1-3) |
+| T47/T48 | reset full / empty | implemented | reset_tests.sv | PASS (CI seeds 1-3) |
+| T49 | reset recovery | implemented | reset_tests.sv | PASS (CI seeds 1-3) |
 | T50 | reset near clock edges | pending | - | - |
-| T51 | random traffic | implemented | random_tests.sv | not run |
-| T52/T53 | random write / read / simultaneous | folded into T51 | random_tests.sv | not run |
-| T54 | random clock ratios | implemented | random_tests.sv | not run |
-| T55 | random reset scenarios | implemented | random_tests.sv | not run |
-| T56 | long random stress | implemented | random_tests.sv | not run |
-| T57 | random boundary conditions | implemented | random_tests.sv | not run |
-| T58 | random fill/drain cycles | implemented | random_tests.sv | not run |
+| T51 | random traffic | implemented | random_tests.sv | PASS (CI seeds 1-3) |
+| T52/T53 | random write / read / simultaneous | folded into T51 | random_tests.sv | PASS (CI seeds 1-3) |
+| T54 | random clock ratios | implemented | random_tests.sv | PASS (CI seeds 1-3) |
+| T55 | random reset scenarios | implemented | random_tests.sv | PASS (CI seeds 1-3) |
+| T56 | long random stress | implemented | random_tests.sv | PASS (CI seeds 1-3) |
+| T57 | random boundary conditions | implemented | random_tests.sv | PASS (CI seeds 1-3) |
+| T58 | random fill/drain cycles | implemented | random_tests.sv | PASS (CI seeds 1-3) |
 | - | negative tests / bug injection | pending | - | - |
+
+## Cross-coverage analysis (CI seed 1; same 9 bins missed for seeds 1-3)
+This classification is by reasoning about the design, not tool-verified.
+| Missed bin | Class |
+|---|---|
+| X1 occupancy=0 x write+concurrent read | unreachable: no read can be accepted at occupancy 0 |
+| X1 occupancy=0 x blocked write | unreachable: `full` cannot be set at occupancy 0 |
+| X1 occupancy=max x write-only | unreachable: a write cannot be accepted when full |
+| X1 occupancy=max x write+read | unreachable: same reason |
+| X1 occupancy=low x blocked write | reachable (stale `full` while draining fast); needs a directed test |
+| X3 reset at empty x write active / read active | reachable; needs reset with `wr_en`/`rd_en` high at empty |
+| X3 reset at full x write active / read active | reachable; needs reset with `wr_en`/`rd_en` high at full |
+The four unreachable bins should be excluded and documented; the five reachable ones are the remaining coverage work.
