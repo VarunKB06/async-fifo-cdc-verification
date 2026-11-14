@@ -224,7 +224,9 @@ module tb_async_fifo;
     initial begin
         if (!$value$plusargs("seed=%d", seed))   seed = 1;
         if (!$value$plusargs("STAGE=%d", stage)) stage = 0;
-        if (!$test$plusargs("nowave")) begin
+        // Waveform dump only on request (+vcd). CI passes +vcd; plain local/Vivado runs are unaffected.
+        // The waveforms/ directory must exist before the simulation starts.
+        if ($test$plusargs("vcd")) begin
             $dumpfile("waveforms/tb_async_fifo.vcd");
             $dumpvars(0, tb_async_fifo);
         end
