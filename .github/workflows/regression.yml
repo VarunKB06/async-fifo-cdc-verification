@@ -1,26 +1,139 @@
-# UNTESTED workflow (no simulator was available when it was written). It fails if any stage fails:
-# scripts/run_all.sh exits nonzero on compile failure, simulator error, watchdog or any failed check.
-name: regression
-on: [push, pull_request]
+name: Async FIFO CDC regression
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:          # manual run: Actions tab -> "Async FIFO CDC regression" -> Run workflow
+
+env:
+  RTL_SRC: >-
+    rtl/synchronizer.sv rtl/gray_encoder.sv rtl/write_pointer.sv rtl/read_pointer.sv
+    rtl/full_empty_logic.sv rtl/fifo_memory.sv rtl/async_fifo.sv
+    verification/scoreboard.sv verification/assertions.sv verification/coverage.sv
+    verification/tb_async_fifo.sv
+
 jobs:
-  sim:
-    runs-on: ubuntu-latest
+  regression:
+    name: regression (seed ${{ matrix.seed }})
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
     strategy:
       fail-fast: false
       matrix:
         seed: [1, 2, 3]
+    defaults:
+      run:
+        shell: bash            # bash -e -o pipefail: a failing simulator fails the pipeline
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
       - name: Install Icarus Verilog
-        run: sudo apt-get update && sudo apt-get install -y iverilog
-      - name: Simulator version (needs queue/SV support; 12+ recommended)
-        run: iverilog -V | head -1
-      - name: Algorithm model sanity (python, not RTL)
-        run: ./scripts/check_model.sh
-      - name: Regression
-        run: SEED=${{ matrix.seed }} WAVES=0 ./scripts/run_all.sh
-      - uses: actions/upload-artifact@v4
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y iverilog
+
+      - name: Show simulator version
+        run: |
+          iverilog -V | head -n 1
+          vvp -V | head -n 1
+
+      - name: Prepare output directories
+        run: mkdir -p build reports waveforms
+
+      - name: Algorithm model sanity (Python model, not an RTL run)
+        run: |
+          python3 docs/model/fifo_model.py | tee reports/model_sanity.log
+          grep -q "errors 0" reports/model_sanity.log
+
+      - name: Compile (Icarus, -g2012)
+        run: |
+          iverilog -g2012 -Wall -s tb_async_fifo -I verification/tests \
+            -o build/sim.vvp $RTL_SRC 2>&1 | tee reports/compile_seed${{ matrix.seed }}.log
+
+      - name: Run tb_async_fifo, all stages, seed ${{ matrix.seed }}
+        run: |
+          vvp build/sim.vvp +STAGE=0 +seed=${{ matrix.seed }} 2>&1 | tee reports/sim_seed${{ matrix.seed }}.log
+
+      - name: Check results
+        env:
+          SEED: ${{ matrix.seed }}
+        run: |
+          LOG=reports/sim_seed${SEED}.log
+          sed -n '/=== SUMMARY/,/=== END/p' "$LOG" | tee -a "$GITHUB_STEP_SUMMARY"
+          grep -q "seed: ${SEED} " "$LOG"                  # this seed was really used
+          grep -q "FINAL: PASS" "$LOG"
+          grep -Eq "failed tests: 0$" "$LOG"
+          grep -Eq "scoreboard errors: 0$" "$LOG"
+          grep -Eq "assertion failures: 0$" "$LOG"
+          if grep -Eq "SB ERROR|TB FAIL|CHECK FAIL|WATCHDOG|\] FAIL " "$LOG"; then
+            echo "error lines found in $LOG"; exit 1
+          fi
+
+      - name: Upload logs
         if: always()
+        uses: actions/upload-artifact@v4
         with:
-          name: logs-seed${{ matrix.seed }}
+          name: sim-logs-seed-${{ matrix.seed }}
           path: reports/
+          if-no-files-found: warn
+          retention-days: 30
+
+  waveform:
+    name: waveform (VCD, stage 1, seed 1)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Icarus Verilog
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y iverilog
+
+      - name: Show simulator version
+        run: iverilog -V | head -n 1
+
+      - name: Prepare output directories
+        run: mkdir -p build reports waveforms
+
+      - name: Compile
+        run: |
+          iverilog -g2012 -s tb_async_fifo -I verification/tests \
+            -o build/sim_wave.vvp $RTL_SRC 2>&1 | tee reports/compile_wave.log
+
+      - name: Run stage 1 with VCD dump
+        run: |
+          vvp build/sim_wave.vvp +STAGE=1 +seed=1 +vcd 2>&1 | tee reports/sim_wave_stage1.log
+          grep -q "FINAL: PASS" reports/sim_wave_stage1.log
+
+      - name: Verify VCD was written
+        if: always()
+        run: |
+          ls -l waveforms/
+          test -s waveforms/tb_async_fifo.vcd
+          mv waveforms/tb_async_fifo.vcd waveforms/tb_async_fifo_stage1_seed1.vcd
+
+      - name: Upload waveform
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: waveform-stage1-seed1
+          path: waveforms/*.vcd
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Upload waveform job logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: waveform-job-logs
+          path: reports/
+          if-no-files-found: warn
+          retention-days: 30
