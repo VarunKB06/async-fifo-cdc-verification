@@ -1,5 +1,5 @@
 === ASSERTION SUMMARY ===
 mode: PROCEDURAL checkers (not native SVA)
 assertion/check failures: 0
-procedural check evaluations (wr+rd edges): 183960
+procedural check evaluations (wr+rd edges): 186701
 === END ===
