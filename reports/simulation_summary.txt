@@ -1,13 +1,14 @@
 === SUMMARY ===
 seed: 1   stage: 0
-total tests: 38
-passed tests: 38
+total tests: 41
+passed tests: 41
 failed tests: 0
-total checks: 112380 (tb 260 + scoreboard 112120)
-scoreboard writes/reads compared: 20008 / 19867
+total checks: 113740 (tb 275 + scoreboard 113465)
+scoreboard writes/reads compared: 19957 / 19802
 assertion failures: 0
 scoreboard errors: 0
 functional EVENT bins covered: 39 / 39
-functional CROSS bins covered: 23 / 32
+functional CROSS bins covered: 29 / 32
+functional CROSS bins covered (3 unreachable excluded): 29 / 29
 FINAL: PASS
 === END ===
