@@ -10,7 +10,11 @@ functional event-bin coverage and a scripted regression.
 
 ## Results
 
-### GitHub Actions (Icarus Verilog, `+STAGE=0`, all 38 tests)
+> **Update pending CI confirmation:** three directed tests (T59-T61) and coverage exclusions were added **after** the
+> runs reported below, to close the reachable cross bins. The tables in this section are the **38-test baseline**; the
+> numbers for the 41-test regression will be added from the next CI run.
+
+### GitHub Actions baseline (Icarus Verilog, `+STAGE=0`, 38 tests, before T59-T61)
 | Item | seed 1 | seed 2 | seed 3 |
 |---|---|---|---|
 | Tests passed / failed | 38 / 0 | 38 / 0 | 38 / 0 |
@@ -31,10 +35,13 @@ Source: `reports/ci_logs/sim_seed{1,2,3}.log`; seed-1 extracts in `reports/simul
 Counts differ slightly from CI because random streams differ between simulators.
 
 ### Coverage notes
-EVENT bins are 100% covered. CROSS coverage is 23 / 32; the 9 missed bins (all seeds, listed in
-`reports/functional_coverage.txt`) are classified in [docs/verification_plan.md](docs/verification_plan.md)
-(3 unreachable by construction, 6 reachable but not yet hit). Event-bin coverage is hand-written functional coverage,
-not RTL code coverage and not formal CDC proof.
+In the 38-test baseline EVENT bins are 100% covered and CROSS coverage is 23 / 32. The 9 missed bins (all seeds, listed
+in `reports/functional_coverage.txt`) are classified in [docs/verification_plan.md](docs/verification_plan.md): 3 are
+unreachable by construction and are now **excluded** in the coverage report (marked `EXCL`; reachable total 29), and 6
+are targeted by the new directed tests T59 (blocked write at occupancy 0 / low), T60 (reset at empty) and T61 (reset at
+full). **Whether these tests hit their bins is not yet confirmed**; the target is 29 / 29 reachable (29 / 32 raw) and the
+number will only be quoted from a real CI log. Event-bin coverage is hand-written functional coverage, not RTL code
+coverage and not formal CDC proof.
 
 ### Waveforms (GTKWave, stage 1 run, seed 1)
 Captured in GTKWave from the CI waveform [`waveforms/tb_async_fifo_stage1_seed1.vcd`](waveforms/tb_async_fifo_stage1_seed1.vcd)
@@ -88,7 +95,7 @@ protocol are in [docs/architecture.md](docs/architecture.md); the test matrix an
   Gray one-bit change, reset values, synchronizer latency and memory-write protection.
 - **Coverage:** hand-written functional event bins (39) and cross bins (32), reported separately.
 
-## Tests (38)
+## Tests (38 passing in CI; T59-T61 added, pending run)
 | Group | Tests |
 |---|---|
 | Basic | T1-T10: reset, single/multiple write and read, full, empty, write while full, read while empty, recovery |
@@ -97,6 +104,7 @@ protocol are in [docs/architecture.md](docs/architecture.md); the test matrix an
 | Sync latency / near boundary | T27, T28, T29, T31, T32, T33 |
 | Reset | T44-T49: reset during write, read, simultaneous traffic, full, empty; recovery |
 | Random | T51, T54, T55, T56, T57, T58: random traffic, clock ratios, resets, long stress, boundaries |
+| Cross-bin closure (new, not yet run) | T59: blocked write while `full` is stale (occupancy 0 / low); T60: reset at empty with write+read active; T61: reset at full with write+read active |
 
 ## Run
 ```
@@ -130,6 +138,7 @@ Workflow: `.github/workflows/regression.yml` (Icarus Verilog on `ubuntu-24.04`).
 | RTL (7 modules; `gray_decoder` omitted, not needed) | yes | simulated: Vivado XSim, Icarus (CI) |
 | Scoreboard, procedural checkers, coverage bins | yes | 0 errors, 0 failures; EVENT 39/39, CROSS 23/32 (CI) |
 | 38 tests (matrix in docs/verification_plan.md) | yes | 38/38 PASS, seeds 1-3 (CI) |
+| T59-T61 cross-bin closure tests, `EXCL` bins in coverage report | yes | not yet run |
 | Synchronizer-latency checks/tests (T31-T33) | yes | PASS |
 | GitHub Actions workflow | yes | green for seeds 1, 2, 3 and waveform job |
 | T50, negative tests, bug injection | no | pending |
@@ -142,11 +151,11 @@ Workflow: `.github/workflows/regression.yml` (Icarus Verilog on `ubuntu-24.04`).
 - Scoreboard cannot tell loss from reordering from corruption; it reports a data mismatch.
 - `dout` uses an asynchronous memory read (LUT-RAM/register-file style); no block-RAM mapping (see architecture.md).
 - Reset is applied at fixed offsets, not randomly near clock edges (T50 pending).
-- CROSS coverage is 23 / 32; 3 of the missed bins are unreachable by construction and 6 need directed tests
+- CROSS coverage was 23 / 32 in the last CI run; 3 missed bins are unreachable by construction (now excluded) and 6 are targeted by T59-T61 (result pending)
   (see docs/verification_plan.md).
 - Native-SVA mode exists but has not been run; CI uses Icarus with procedural checkers.
 
 ## Future work
-Directed tests for the 6 reachable missed cross bins and exclusion of the 3 unreachable ones; reset near clock edges
+Confirm T59-T61 close the 6 reachable cross bins (written, not yet run); reset near clock edges
 (T50); negative tests and bug injection; a native-SVA run in Riviera-PRO/XSim; static CDC and formal checks;
 a block-RAM variant with a registered-read interface.
