@@ -1,6 +1,6 @@
 # Verification plan, matrix and status
 
-**Execution status:** all 38 implemented tests passed with seeds 1, 2 and 3 in GitHub Actions (Icarus Verilog), logs in
+**Execution status:** all 38 tests implemented before the cross-closure work passed with seeds 1, 2 and 3 in GitHub Actions (Icarus Verilog), logs in
 `reports/ci_logs/`, and 38/38 in the author's local Vivado 2026.1 XSim run. Native-SVA mode was not run. Rows that say
 "via ..." are checked continuously by the procedural checkers (0 failures); rows marked pending were not implemented.
 
@@ -89,19 +89,21 @@ and each MISS has been explained.
 | T56 | long random stress | implemented | random_tests.sv | PASS (CI seeds 1-3) |
 | T57 | random boundary conditions | implemented | random_tests.sv | PASS (CI seeds 1-3) |
 | T58 | random fill/drain cycles | implemented | random_tests.sv | PASS (CI seeds 1-3) |
+| T59 | blocked write with stale `full`, occupancy 0 / low (extra, closes cross bins) | implemented | cdc_tests.sv | not yet run |
+| T60 | reset at empty, write+read active (extra, closes cross bins) | implemented | reset_tests.sv | not yet run |
+| T61 | reset at full, write+read active (extra, closes cross bins) | implemented | reset_tests.sv | not yet run |
 | - | negative tests / bug injection | pending | - | - |
 
-## Cross-coverage analysis (CI seed 1; same 9 bins missed for seeds 1-3)
-This classification is by reasoning about the design, not tool-verified. A reachable bin is only confirmed once a
-directed test hits it.
-| Missed bin | Class |
-|---|---|
-| X1 occupancy=0 x write+concurrent read | unreachable: a read cannot be accepted at occupancy 0 |
-| X1 occupancy=max x write-only | unreachable: a write cannot be accepted when `full` is set at max occupancy |
-| X1 occupancy=max x write+read | unreachable: same reason |
-| X1 occupancy=0 x blocked write | reachable: `full` stays high for a few write edges after the read pointer moves, so with a much faster read clock the FIFO can drain to 0 while `full` is still set; needs fill, fast read clock, `wr_en` held high |
-| X1 occupancy=low x blocked write | reachable: same stale-`full` effect while draining |
-| X3 reset at empty x write active / read active | reachable: reset with `wr_en` / `rd_en` high at empty |
-| X3 reset at full x write active / read active | reachable: reset with `wr_en` / `rd_en` high at full |
-Plan: exclude the 3 unreachable bins with the reasons above and add directed tests for the 6 reachable bins. The
-maximum raw cross coverage is therefore 29 / 32; 100% is only meaningful for the 29 reachable bins after the exclusion.
+## Cross-coverage analysis (baseline CI run: 23 / 32 for seeds 1-3; closure tests T59-T61 added afterwards)
+Classification is by reasoning about the design. A reachable bin counts as closed only when a CI log shows it `HIT`.
+| Bin | Class | Closing test |
+|---|---|---|
+| X1 occupancy=0 x write+concurrent read | unreachable: a read cannot be accepted at occupancy 0; **excluded** (`EXCL`) | - |
+| X1 occupancy=max x write-only | unreachable: a write cannot be accepted while `full` is set at max occupancy; **excluded** | - |
+| X1 occupancy=max x write+read | unreachable: same reason; **excluded** | - |
+| X1 occupancy=0 x blocked write | reachable: `full` stays high for SYNC_STAGES+1 write edges after the read pointer moves, so with a 10x faster read clock the FIFO drains to 0 while `full` is still set and `wr_en` is high | T59 (16 reads) |
+| X1 occupancy=low x blocked write | reachable: same stale-`full` effect, stopping the drain at occupancy 2 | T59 (14 reads) |
+| X3 reset at empty x write active / read active | reachable: reset ~1 ns after `wr_en` and `rd_en` rise while empty | T60 |
+| X3 reset at full x write active / read active | reachable: reset ~1 ns after `rd_en` rises while full with `wr_en` high | T61 |
+Reporting: the coverage report prints the raw cross total (x / 32) and the reachable total (x / 29, excluded bins marked
+`EXCL`). Target: 29 / 29 reachable, 29 / 32 raw; no figure is claimed until a CI log shows it.
