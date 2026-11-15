@@ -1,5 +1,12 @@
 # Change log
 
+## Cross-bin closure (written, not yet run)
+- Added directed tests T59 (blocked write with stale `full` at occupancy 0 and 2, `cdc_tests.sv`), T60 (reset at
+  empty, write+read active) and T61 (reset at full, write+read active) in `reset_tests.sv`.
+- `coverage.sv`: the 3 unreachable X1 bins are marked `EXCL` and a reachable total (x / 29) is reported next to the raw
+  total (x / 32); `tb_async_fifo.sv` prints both in the summary. Shortened one check message (>48 characters).
+- README / `docs/verification_plan.md` updated; results are intentionally NOT updated until the next CI run.
+
 ## Documentation update (final README)
 - README: removed script-rendered images, added GTKWave screenshots, layout tree, verification architecture,
   test summary, future work; scripts shown with `bash`.
