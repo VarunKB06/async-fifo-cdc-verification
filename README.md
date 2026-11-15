@@ -4,44 +4,43 @@ Dual-clock FIFO (Gray-coded pointers, 2-flop synchronizers) plus a procedural Sy
 environment: independent reference-queue scoreboard, pointer/protocol assertions, directed + randomized tests,
 functional event-bin coverage and a scripted regression.
 
-> **Status: simulated and passing.** The full regression (38 tests) passes in **GitHub Actions with Icarus Verilog**
-> for seeds 1, 2 and 3, and the author's local **Vivado 2026.1 XSim** run reported the same 38/38. Assertions are
-> procedural checkers, not native SVA. Logs are in `reports/ci_logs/`; waveforms are in `waveforms/`.
+> **Status: simulated and passing.** The full regression (41 tests) passes in **GitHub Actions with Icarus Verilog**
+> for seeds 1, 2 and 3. The author's earlier local **Vivado 2026.1 XSim** run (38 tests, before T59-T61) also passed.
+> Assertions are procedural checkers, not native SVA. Logs are in `reports/ci_logs/`; waveforms are in `waveforms/`.
 
 ## Results
 
-> **Update pending CI confirmation:** three directed tests (T59-T61) and coverage exclusions were added **after** the
-> runs reported below, to close the reachable cross bins. The tables in this section are the **38-test baseline**; the
-> numbers for the 41-test regression will be added from the next CI run.
-
-### GitHub Actions baseline (Icarus Verilog, `+STAGE=0`, 38 tests, before T59-T61)
+### GitHub Actions (Icarus Verilog, `+STAGE=0`, all 41 tests)
 | Item | seed 1 | seed 2 | seed 3 |
 |---|---|---|---|
-| Tests passed / failed | 38 / 0 | 38 / 0 | 38 / 0 |
+| Tests passed / failed | 41 / 0 | 41 / 0 | 41 / 0 |
 | Scoreboard errors | 0 | 0 | 0 |
 | Assertion (procedural check) failures | 0 | 0 | 0 |
-| Total checks | 112,380 | 117,627 | 111,670 |
-| Writes / reads compared | 20,008 / 19,867 | 20,707 / 20,552 | 20,054 / 19,912 |
+| Total checks | 113,740 | 118,024 | 119,976 |
+| Writes / reads compared | 19,957 / 19,802 | 20,993 / 20,853 | 21,012 / 20,846 |
+| Procedural check evaluations | 186,701 | 193,165 | 197,083 |
 | Functional EVENT bins | 39 / 39 | 39 / 39 | 39 / 39 |
-| Functional CROSS bins | 23 / 32 | 23 / 32 | 23 / 32 |
+| Functional CROSS bins (raw) | 29 / 32 | 29 / 32 | 29 / 32 |
+| Functional CROSS bins (3 unreachable excluded) | 29 / 29 | 29 / 29 | 29 / 29 |
 | Final | PASS | PASS | PASS |
 
 Source: `reports/ci_logs/sim_seed{1,2,3}.log`; seed-1 extracts in `reports/simulation_summary.txt`,
-`reports/assertion_summary.txt` (183,960 procedural check evaluations) and `reports/functional_coverage.txt`.
+`reports/assertion_summary.txt` and `reports/functional_coverage.txt`. The stage-1 waveform job (10 tests) also passed.
+Icarus prints a harmless "no explicit time unit" warning for the RTL files (they contain no delays).
 
-### Author's local Vivado 2026.1 XSim run (earlier reference, log not committed)
-38 / 38 tests, 0 scoreboard errors, 0 assertion failures, 112,332 checks (260 testbench + 112,072 scoreboard),
-20,159 writes / 20,035 reads compared, EVENT 39 / 39, CROSS 25 / 32, 183,527 procedural check evaluations.
-Counts differ slightly from CI because random streams differ between simulators.
+### Earlier history
+- 38-test CI baseline (before T59-T61): 38 / 38 PASS for seeds 1-3, EVENT 39 / 39, CROSS 23 / 32.
+- Author's local Vivado 2026.1 XSim run (38 tests, log not committed): 38 / 38 PASS, 0 scoreboard errors, 0 assertion
+  failures, 112,332 checks, EVENT 39 / 39, CROSS 25 / 32. A Vivado re-run of the 41-test regression has not been done.
+Counts differ between runs and simulators because the random streams differ.
 
 ### Coverage notes
-In the 38-test baseline EVENT bins are 100% covered and CROSS coverage is 23 / 32. The 9 missed bins (all seeds, listed
-in `reports/functional_coverage.txt`) are classified in [docs/verification_plan.md](docs/verification_plan.md): 3 are
-unreachable by construction and are now **excluded** in the coverage report (marked `EXCL`; reachable total 29), and 6
-are targeted by the new directed tests T59 (blocked write at occupancy 0 / low), T60 (reset at empty) and T61 (reset at
-full). **Whether these tests hit their bins is not yet confirmed**; the target is 29 / 29 reachable (29 / 32 raw) and the
-number will only be quoted from a real CI log. Event-bin coverage is hand-written functional coverage, not RTL code
-coverage and not formal CDC proof.
+EVENT bins are 100% covered. CROSS is 29 / 32 raw and **29 / 29 reachable** in all three seeds. The 3 excluded bins
+(marked `EXCL` in `reports/functional_coverage.txt`) cannot occur in a correct FIFO: occupancy 0 with a write plus
+concurrent read, and occupancy max with a write-only or write-plus-read. The 6 bins that were missed in the 38-test
+baseline are now hit by the directed tests T59 (blocked write at occupancy 0 / low), T60 (reset at empty) and T61
+(reset at full). Reasons are in [docs/verification_plan.md](docs/verification_plan.md). This is hand-written functional
+coverage, not RTL code coverage and not formal CDC proof.
 
 ### Waveforms (GTKWave, stage 1 run, seed 1)
 Captured in GTKWave from the CI waveform [`waveforms/tb_async_fifo_stage1_seed1.vcd`](waveforms/tb_async_fifo_stage1_seed1.vcd)
@@ -95,7 +94,7 @@ protocol are in [docs/architecture.md](docs/architecture.md); the test matrix an
   Gray one-bit change, reset values, synchronizer latency and memory-write protection.
 - **Coverage:** hand-written functional event bins (39) and cross bins (32), reported separately.
 
-## Tests (38 passing in CI; T59-T61 added, pending run)
+## Tests (41, all passing in CI)
 | Group | Tests |
 |---|---|
 | Basic | T1-T10: reset, single/multiple write and read, full, empty, write while full, read while empty, recovery |
@@ -104,7 +103,7 @@ protocol are in [docs/architecture.md](docs/architecture.md); the test matrix an
 | Sync latency / near boundary | T27, T28, T29, T31, T32, T33 |
 | Reset | T44-T49: reset during write, read, simultaneous traffic, full, empty; recovery |
 | Random | T51, T54, T55, T56, T57, T58: random traffic, clock ratios, resets, long stress, boundaries |
-| Cross-bin closure (new, not yet run) | T59: blocked write while `full` is stale (occupancy 0 / low); T60: reset at empty with write+read active; T61: reset at full with write+read active |
+| Cross-bin closure | T59: blocked write while `full` is stale (occupancy 0 / low); T60: reset at empty with write+read active; T61: reset at full with write+read active |
 
 ## Run
 ```
@@ -135,10 +134,10 @@ Workflow: `.github/workflows/regression.yml` (Icarus Verilog on `ubuntu-24.04`).
 ## Implemented vs verified
 | Item | Written | Run / result |
 |---|---|---|
-| RTL (7 modules; `gray_decoder` omitted, not needed) | yes | simulated: Vivado XSim, Icarus (CI) |
-| Scoreboard, procedural checkers, coverage bins | yes | 0 errors, 0 failures; EVENT 39/39, CROSS 23/32 (CI) |
-| 38 tests (matrix in docs/verification_plan.md) | yes | 38/38 PASS, seeds 1-3 (CI) |
-| T59-T61 cross-bin closure tests, `EXCL` bins in coverage report | yes | not yet run |
+| RTL (7 modules; `gray_decoder` omitted, not needed) | yes | simulated: Icarus (CI, 41 tests); Vivado XSim (38 tests) |
+| Scoreboard, procedural checkers, coverage bins | yes | 0 errors, 0 failures; EVENT 39/39, CROSS 29/29 reachable (CI) |
+| 41 tests (matrix in docs/verification_plan.md) | yes | 41/41 PASS, seeds 1-3 (CI) |
+| T59-T61 cross-bin closure tests, `EXCL` bins in coverage report | yes | PASS; CROSS 29/29 reachable (CI) |
 | Synchronizer-latency checks/tests (T31-T33) | yes | PASS |
 | GitHub Actions workflow | yes | green for seeds 1, 2, 3 and waveform job |
 | T50, negative tests, bug injection | no | pending |
@@ -151,11 +150,11 @@ Workflow: `.github/workflows/regression.yml` (Icarus Verilog on `ubuntu-24.04`).
 - Scoreboard cannot tell loss from reordering from corruption; it reports a data mismatch.
 - `dout` uses an asynchronous memory read (LUT-RAM/register-file style); no block-RAM mapping (see architecture.md).
 - Reset is applied at fixed offsets, not randomly near clock edges (T50 pending).
-- CROSS coverage was 23 / 32 in the last CI run; 3 missed bins are unreachable by construction (now excluded) and 6 are targeted by T59-T61 (result pending)
+- CROSS coverage is 29 / 32 raw; the 3 remaining bins are unreachable by construction and are excluded (29 / 29 reachable)
   (see docs/verification_plan.md).
 - Native-SVA mode exists but has not been run; CI uses Icarus with procedural checkers.
 
 ## Future work
-Confirm T59-T61 close the 6 reachable cross bins (written, not yet run); reset near clock edges
+Reset near clock edges
 (T50); negative tests and bug injection; a native-SVA run in Riviera-PRO/XSim; static CDC and formal checks;
 a block-RAM variant with a registered-read interface.
