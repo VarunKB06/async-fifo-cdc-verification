@@ -1,0 +1,179 @@
+=== tb_async_fifo: stage=0 seed=2 ===
+[T1] START initial reset behaviour
+[T1] PASS  initial reset behaviour
+[T2] START single write and read
+[T2] PASS  single write and read
+[T3] START multiple sequential writes
+[T3] PASS  multiple sequential writes
+[T4] START multiple sequential reads
+[T4] PASS  multiple sequential reads
+[T5] START full detection
+[T5] PASS  full detection
+[T6] START empty detection
+[T6] PASS  empty detection
+[T7] START write attempt while full
+[T7] PASS  write attempt while full
+[T8] START read attempt while empty
+[T8] PASS  read attempt while empty
+[T9] START recovery after full
+[T9] PASS  recovery after full
+[T10] START recovery after empty
+[T10] PASS  recovery after empty
+[T16] START max/min occupancy
+[T16] PASS  max/min occupancy
+[T18] START repeated fill and drain x8
+[T18] PASS  repeated fill and drain x8
+[T20] START full/empty boundary transitions
+[T20] PASS  full/empty boundary transitions
+[T21] START simultaneous r/w 100MHz/75MHz
+[T21] PASS  simultaneous r/w 100MHz/75MHz
+[T23] START write clock faster than read
+[T23] PASS  write clock faster than read
+[T24] START read clock faster than write
+[T24] PASS  read clock faster than write
+[T26] START unequal odd periods
+[T26] PASS  unequal odd periods
+[T36] START shifted read clock phase
+[T36] PASS  shifted read clock phase
+[T37] START write 10x faster than read
+[T37] PASS  write 10x faster than read
+[T38] START read 10x faster than write
+[T38] PASS  read 10x faster than write
+[T31] START write ptr sync latency (empty clears)
+[T31] PASS  write ptr sync latency (empty clears)
+[T32] START read ptr sync latency (full clears)
+[T32] PASS  read ptr sync latency (full clears)
+[T33] START sync latency, several clock ratios
+[T33] PASS  sync latency, several clock ratios
+[T27] START simultaneous ops near full
+[T27] PASS  simultaneous ops near full
+[T28] START simultaneous ops near empty
+[T28] PASS  simultaneous ops near empty
+[T29] START repeated concurrent fill and drain
+[T29] PASS  repeated concurrent fill and drain
+[T59] START blocked write, stale full, occ 0/low
+[T59] PASS  blocked write, stale full, occ 0/low
+[T47] START reset with FIFO full
+[T47] PASS  reset with FIFO full
+[T48] START reset with FIFO empty
+[T48] PASS  reset with FIFO empty
+[T46] START reset during simultaneous operation
+[T46] PASS  reset during simultaneous operation
+[T44] START reset during active write only
+[T44] PASS  reset during active write only
+[T45] START reset during active read only
+[T45] PASS  reset during active read only
+[T60] START reset at empty, write+read active
+[T60] PASS  reset at empty, write+read active
+[T61] START reset at full, write+read active
+[T61] PASS  reset at full, write+read active
+[T49] START reset recovery data integrity
+[T49] PASS  reset recovery data integrity
+[T51] START random traffic fixed clocks
+[T51] PASS  random traffic fixed clocks
+[T54] START random clock ratios
+   iter 0 wr_half=8601 rd_half=9700
+   iter 1 wr_half=14148 rd_half=1585
+   iter 2 wr_half=10327 rd_half=4785
+   iter 3 wr_half=3602 rd_half=8259
+   iter 4 wr_half=8209 rd_half=4865
+   iter 5 wr_half=5794 rd_half=1632
+   iter 6 wr_half=11966 rd_half=5038
+   iter 7 wr_half=9594 rd_half=7098
+   iter 8 wr_half=8262 rd_half=9277
+   iter 9 wr_half=12467 rd_half=10763
+   iter 10 wr_half=4857 rd_half=5437
+   iter 11 wr_half=10531 rd_half=12463
+[T54] PASS  random clock ratios
+[T55] START random reset scenarios
+[T55] PASS  random reset scenarios
+[T57] START random boundary conditions
+[T57] PASS  random boundary conditions
+[T58] START random fill and drain cycles
+[T58] PASS  random fill and drain cycles
+[T56] START long random stress
+[T56] PASS  long random stress
+=== FUNCTIONAL COVERAGE (hand-written bins; not code coverage, not covergroups) ===
+-- EVENT BINS --
+  [HIT ] status: full observed
+  [HIT ] status: empty observed
+  [HIT ] status: empty->nonempty
+  [HIT ] status: nonempty->empty
+  [HIT ] status: nonfull->full
+  [HIT ] status: full->nonfull
+  [HIT ] op: write only (no concurrent read)
+  [HIT ] op: read only (no concurrent write)
+  [HIT ] op: write with concurrent read
+  [HIT ] op: no operation requested
+  [HIT ] op: blocked write
+  [HIT ] op: blocked read
+  [HIT ] occupancy: empty
+  [HIT ] occupancy: low
+  [HIT ] occupancy: medium
+  [HIT ] occupancy: high
+  [HIT ] occupancy: maximum
+  [HIT ] cdc: write clock faster
+  [HIT ] cdc: read clock faster
+  [HIT ] cdc: similar frequencies
+  [HIT ] cdc: shifted clock phase
+  [HIT ] pointer wrap: write
+  [HIT ] pointer wrap: read
+  [HIT ] reset at empty
+  [HIT ] reset at full
+  [HIT ] reset during write activity
+  [HIT ] reset during read activity
+  [HIT ] recovery: first write after reset
+  [HIT ] recovery: first read after reset
+  [HIT ] wgray bit 0 toggled
+  [HIT ] wgray bit 1 toggled
+  [HIT ] wgray bit 2 toggled
+  [HIT ] wgray bit 3 toggled
+  [HIT ] wgray bit 4 toggled
+  [HIT ] rgray bit 0 toggled
+  [HIT ] rgray bit 1 toggled
+  [HIT ] rgray bit 2 toggled
+  [HIT ] rgray bit 3 toggled
+  [HIT ] rgray bit 4 toggled
+EVENT BINS COVERED: 39 / 39
+-- CROSS BINS --
+ X1 occupancy x write op (wo=write-only, wr=write+read, bw=blocked write)
+   occ=0     wo:HIT  wr:EXCL bw:HIT 
+   occ low   wo:HIT  wr:HIT  bw:HIT 
+   occ med   wo:HIT  wr:HIT  bw:HIT 
+   occ high  wo:HIT  wr:HIT  bw:HIT 
+   occ max   wo:EXCL wr:EXCL bw:HIT 
+ X2 clock ratio x write op (wo / wr)
+   wr_faster wo:HIT  wr:HIT 
+   rd_faster wo:HIT  wr:HIT 
+   similar   wo:HIT  wr:HIT 
+ X3 FIFO state at reset x activity (wr active / rd active / idle)
+   empty     w:HIT  r:HIT  i:HIT 
+   partial   w:HIT  r:HIT  i:HIT 
+   full      w:HIT  r:HIT  i:HIT 
+ X4 pointer wrap x concurrent op
+   write wrap with read:  HIT 
+   read wrap with write:  HIT 
+CROSS BINS COVERED (raw): 29 / 32
+CROSS BINS COVERED (3 unreachable bins excluded, marked EXCL): 29 / 29
+EXCL bins cannot occur in a correct FIFO; reasons in docs/verification_plan.md.
+=== END ===
+=== ASSERTION SUMMARY ===
+mode: PROCEDURAL checkers (not native SVA)
+assertion/check failures: 0
+procedural check evaluations (wr+rd edges): 193165
+=== END ===
+=== SUMMARY ===
+seed: 2   stage: 0
+total tests: 41
+passed tests: 41
+failed tests: 0
+total checks: 118024 (tb 275 + scoreboard 117749)
+scoreboard writes/reads compared: 20993 / 20853
+assertion failures: 0
+scoreboard errors: 0
+functional EVENT bins covered: 39 / 39
+functional CROSS bins covered: 29 / 32
+functional CROSS bins covered (3 unreachable excluded): 29 / 29
+FINAL: PASS
+=== END ===
+verification/tb_async_fifo.sv:241: $finish called at 514335562 (1ps)
