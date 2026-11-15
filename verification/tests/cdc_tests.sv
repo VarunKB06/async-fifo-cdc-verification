@@ -45,7 +45,7 @@ task run_cdc_sync_tests;
         sys_reset; set_clocks(5000, 6667);
         write_n(1);                         // accepted at the last wr edge (returns 1 ps after it)
         measure_empty_clear;
-        check(lat_n == SYNC_STAGES + 1, "empty clears after exactly SYNC_STAGES+1 rd edges");
+        check(lat_n == SYNC_STAGES + 1, "empty clears after SYNC_STAGES+1 rd edges");
         drain; end_test;
 
         begin_test(32, "read ptr sync latency (full clears)");
@@ -78,6 +78,22 @@ task run_cdc_sync_tests;
         begin_test(29, "repeated concurrent fill and drain");
         sys_reset;
         for (i = 0; i < 6; i = i + 1) begin traffic(150, 100, 25); traffic(150, 25, 100); end
+        end_test;
+
+        // T59 closes the cross bins "blocked write at occupancy 0" and "blocked write at low occupancy".
+        // `full` lags the read pointer by SYNC_STAGES+1 write edges. With a 10x faster read clock and wr_en held
+        // high, the FIFO is drained (16 or 14 words) before `full` clears, so write attempts are blocked while the
+        // true occupancy is 0 (i = 0) or 2 (i = 1).
+        begin_test(59, "blocked write, stale full, occ 0/low");
+        for (i = 0; i < 2; i = i + 1) begin
+            sys_reset; set_clocks(10000, 1000);
+            wr_prob = 100; rd_prob = 0; wait_wr(DEPTH + 6);       // fill; wr_en stays high (blocked once full)
+            check(full === 1'b1 && occ == DEPTH, "precondition: full FIFO, wr_en still high");
+            read_n(i == 0 ? DEPTH : DEPTH - 2);                   // fast reads while wr_en stays high
+            wait_wr(8);                                           // stale full clears, writes resume
+            drain;
+        end
+        set_clocks(5000, 6667);
         end_test;
     end
 endtask
