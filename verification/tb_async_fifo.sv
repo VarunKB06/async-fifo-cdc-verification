@@ -210,6 +210,7 @@ module tb_async_fifo;
             $display("scoreboard errors: %0d", sb.errors);
             $display("functional EVENT bins covered: %0d / %0d", cov.evt_hit(0), cov.evt_total(0));
             $display("functional CROSS bins covered: %0d / %0d", cov.x_hit(0), cov.x_total(0));
+            $display("functional CROSS bins covered (3 unreachable excluded): %0d / %0d", cov.x_hit_reach(0), cov.x_total_reach(0));
             if (watchdog) $display("WATCHDOG TIMEOUT");
             $display("FINAL: %0s", ok ? "PASS" : "FAIL");
             $display("=== END ===");
